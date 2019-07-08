@@ -333,7 +333,11 @@ def Export(menu, directory, ReportDir, outputfile, OVFilename, daterange, total,
 
 #main script
 print("\nBuilding a list of the relevent AICER reports...")
-menu = '<p><a href="newcontentreport.html">New Content Report</a> | <a href="newcontentreportQandAs.html">New Q and As Report</a> | <a href="newcontentreportNews.html">New News items Report</a> | <a href="file://///atlas/Knowhow/LinkHub/linkhub.html">LinkHub</a></p>'
+menu = '<p><b>Currency</b>: <a href="Currency.html">General</a> | <a href="Top200Currency.html">Top 200</a> | <a href="ZeroCurrency.html">Zero Views</a> | <a href="ECC_Currency.html">Externally Commissioned</a> | <a href="BrexitCurrency.html">Brexit Related</a> | <a href="AGCurrency.html">AG</a> | <a href="CMSCurrency.html">CMS</a> | <a href="EVCurrency.html">EV</a> | <a href="IMCurrency.html">IM</a> | <a href="PMCurrency.html">PM</a>'
+menu += '<br\><b>New Content</b>: <a href="Newcontentreport.html">General</a> | <a href="newcontentreportQandAs.html">QAs</a> | <a href="newcontentreportNews.html">News</a>'
+menu += '<br\><b>Under Review</b>: <a href="underreviewsummary.html">General</a>'
+menu += '<br\><b>Links</b>: <a href="file://///atlas/Knowhow/LinkHub/linkhub.html">LinkHub</a></p>'
+
 directory2 = '\\\\atlas\\Knowhow\\ContentHub\\'
 #directory2 = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\'
 #lookupdpsi = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\'
