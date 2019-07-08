@@ -333,10 +333,7 @@ def Export(menu, directory, ReportDir, outputfile, OVFilename, daterange, total,
 
 #main script
 print("\nBuilding a list of the relevent AICER reports...")
-
-#menu = '<p><a href="Currency.html">Currency Report</a> | <a href="Top100Currency.html">Top 100 Currency Report</a> | <a href="Newcontentreport.html">New Content Report</a> | <a href="file://///atlas/Knowhow/LinkHub/linkhub.html">LinkHub</a></p>'
 menu = '<p><a href="newcontentreport.html">New Content Report</a> | <a href="newcontentreportQandAs.html">New Q and As Report</a> | <a href="newcontentreportNews.html">New News items Report</a> | <a href="file://///atlas/Knowhow/LinkHub/linkhub.html">LinkHub</a></p>'
-
 directory2 = '\\\\atlas\\Knowhow\\ContentHub\\'
 #directory2 = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\'
 #lookupdpsi = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\'
@@ -405,9 +402,6 @@ Export(menu, directory2, ReportDir, outputfile, OVFilename, daterange, total, 'w
 Export(menu, emaildirectory, ReportDir, outputfile, OVFilename, daterange, total, 'email', 'newcontentreport_email.html') 
 Export(menu, directory2, ReportDir, outputfileqandas, OVFilenameQAs, daterange, total, 'qas', 'newcontentreportQandAs.html')  
 Export(menu, directory2, ReportDir, outputfilenews, OVFilenameNews, daterange, total, 'news', 'newcontentreportNews.html')    
-
-    #date = os.path.getctime(directory + filename) #get the create date for each aicer report
-    #date = datetime.date.fromtimestamp(date)  
 
 wait = input("Disconnect from network...run the SendEmail.py script in cmd...when ready press enter")
 
