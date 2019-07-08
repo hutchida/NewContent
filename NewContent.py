@@ -1,5 +1,4 @@
 #AICER new content log, loops through all the AICER reports and builds a new log based on content created in the last week. Also populates mini summary column by scraping the masterstore
-#last updated 28.05.19
 #Developed by Daniel Hutchings
 
 import csv
@@ -23,13 +22,8 @@ from email.mime.image import MIMEImage
 def dataframefilter(df, search, weekago, type):
     df = df[df.DateFirstPublished.notnull()]
     df['DateFirstPublished'] = pd.to_datetime(df['DateFirstPublished'], dayfirst=True)
-    #print(df.DateFirstPublished.dt.date)
     print("Week ago was: " + str(weekago))
-    
-    #df = df[df.DateFirstPublished.dt.date > datetime.datetime.now() - pd.to_timedelta("30day")]
     df = df[df.DateFirstPublished.dt.date >= weekago]
-    #df['DateFirstPublished'] = datetime.datetime.strptime((df['DateFirstPublished']), '%d/%m/%Y %H:%M:%S')
-    #df = df[df['DateFirstPublished'] < weekago]
     print("\nBuilding new report...")
     #dropping unnecessary columns
     del df['DisplayId'], df['LexisSmartId'], df['OriginalContentItemId'], df['OriginalContentItemPA'], df['PageType'], df['TopicTreeLevel4'], df['TopicTreeLevel5'], df['TopicTreeLevel6'], df['TopicTreeLevel7'], df['TopicTreeLevel8'], df['TopicTreeLevel9'], df['TopicTreeLevel10'], df['VersionFilename'], df['Filename_Or_Address'], df['CreateDate'], df['MajorUpdateFirstPublished'], df['LastPublishedDate'], df['OriginalLastPublishedDate'], df['LastMajorDate'], df['LastMinorDate'], df['LastReviewedDate'], df['LastUnderReviewDate'], df['SupportsMiniSummary']
@@ -105,7 +99,6 @@ def MiniSummary(ReportDir, outputfile, lookupdpsi):
             except: summary = 'Not present'
             list1 = [[DocTitle, summary, ContentType, PA, Subtopic, DocID, DateFirstPublished, Link]]
             df1 = df1.append(list1)
-            #print(list1)
 
         else: 
             docloc = dfdpsi.loc[(dfdpsi['ContentType'] == ContentType) & (dfdpsi['PA'] == PA), 'path'].item() #filters dataframe by contenttype and PA then tries to extract the only value under the column of path
@@ -126,7 +119,6 @@ def MiniSummary(ReportDir, outputfile, lookupdpsi):
 
                     list1 = [[DocTitle, summary, ContentType, PA, Subtopic, DocID, DateFirstPublished, Link]]
                     df1 = df1.append(list1)
-                    #print(list1)
         i=i+1
     df1.to_csv(ReportDir + outputfile, encoding='UTF-8', sep=',',index=False,header=["Doc Title", "Summary", "Content Type", "PA", "Subtopic", "Doc ID", "DateFirstPublished", "Link"])
     
@@ -144,7 +136,6 @@ def QandAsOverviewLog(ReportDir, outputfile, OVFilename):
         list2.append(PAtotal)
     dfOv.to_csv(ReportDir + "\\" + OVFilename, sep=',',index=False, header=["PA", "Total number of new QandAs"]) #Output to CSV
     print("QandAs overview exported to: " + ReportDir + "\\" + OVFilename)
-    print(list2)
     return list2
 
     
@@ -198,43 +189,34 @@ def OverviewLog(ReportDir, outputfile, OVFilename):
     print("Overview exported to: " + ReportDir + "\\" + OVFilename)
     
 def StackedBar(ReportDir, OVFilename, directory, daterange):
-    #Generate bar charts
     print('Generating bar chart for new content items...')
     dfOv = pd.read_csv(ReportDir + "\\" + OVFilename) #Load csv file into dataframe
     dfOv = dfOv.sort_values(['Total number of new docs'], ascending = False)
     dfOv = dfOv[dfOv['Total number of new docs'] != 0]
     values = dfOv['Total number of new docs']
-    #print(values)
     objects =  dfOv['PA'] 
 
     x_pos = np.arange(len(objects))
-    #ax = values.plot(kind='bar', facecolor='#99e6e6', figsize=(7,7))
 
     dfOv['Practice Notes'].plot(kind='bar', facecolor='#FF8AC4')
     dfOv['Checklists'].plot(kind='bar', bottom=dfOv['Practice Notes'], facecolor='#ACFFBA')
     dfOv['Overviews'].plot(kind='bar', bottom=[i+j for i,j in zip(dfOv['Practice Notes'], dfOv['Checklists'])], facecolor='#91A8E8')
     dfOv['Precedents'].plot(kind='bar', bottom=[i+j+k for i,j,k in zip(dfOv['Practice Notes'], dfOv['Checklists'], dfOv['Overviews'])], facecolor='#E8E2CE')
 
-    #plt.subplots_adjust(bottom=0.5)
-    plt.xticks(x_pos, objects)
-    
-    
+    plt.xticks(x_pos, objects)    
     fig = plt.gcf()
     fig.set_size_inches(3,4)
     fig.tight_layout()   
-    #plt.title('Number of new docs per PA between ' + daterange)
     fig.savefig(directory + 'newcontentbar.png')
     plt.close(fig) 
 
 def StandardBar(ReportDir, OVFilename, directory, daterange, type):
-    #Generate bar charts
     print('Generating bar chart for new ' + type + '...')
-    dfOv = pd.read_csv(ReportDir + "\\" + OVFilename) #Load csv file into dataframe
+    dfOv = pd.read_csv(ReportDir + "\\" + OVFilename) 
 
     dfOv = dfOv.sort_values(['Total number of new ' + type], ascending = False)
     dfOv = dfOv[dfOv['Total number of new ' + type] != 0]
     objects =  dfOv['PA'] 
-    print(objects)
     x_pos = np.arange(len(objects))
 
     if type == 'QandAs': dfOv['Total number of new ' + type].plot(kind='bar', facecolor='#bc8f8f')
@@ -246,13 +228,11 @@ def StandardBar(ReportDir, OVFilename, directory, daterange, type):
     fig = plt.gcf()
     fig.set_size_inches(6,4)
     fig.tight_layout()   
-    #plt.title('Number of new docs per PA between ' + daterange)
     if type == 'QandAs': fig.savefig(directory + 'newcontentbar-qas.png')
     if type == 'News items': fig.savefig(directory + 'newcontentbar-news.png')
     plt.close(fig) 
         
 def Pie(listCT, directory, daterange):
-    #Generate Pie charts
     print('Generating pie chart for new content items...')
     
     labels = ['Practice Note', 'Overview', 'Checklist', 'Precedent']
@@ -274,9 +254,6 @@ def Pie(listCT, directory, daterange):
     centre_circle = plt.Circle((0,0),0.70,fc='white')
     fig = plt.gcf()
     fig.gca().add_artist(centre_circle)
-    #Equal aspect ratio ensures that pie is drawn as a circle
-    #ax1.axis('equal')  
-    #fig = plt.gcf()
     fig.set_size_inches(3.5,3.5)
     fig.tight_layout()   
     plt.legend(loc=10)
@@ -360,8 +337,8 @@ print("\nBuilding a list of the relevent AICER reports...")
 #menu = '<p><a href="Currency.html">Currency Report</a> | <a href="Top100Currency.html">Top 100 Currency Report</a> | <a href="Newcontentreport.html">New Content Report</a> | <a href="file://///atlas/Knowhow/LinkHub/linkhub.html">LinkHub</a></p>'
 menu = '<p><a href="newcontentreport.html">New Content Report</a> | <a href="newcontentreportQandAs.html">New Q and As Report</a> | <a href="newcontentreportNews.html">New News items Report</a> | <a href="file://///atlas/Knowhow/LinkHub/linkhub.html">LinkHub</a></p>'
 
-#directory2 = '\\\\atlas\\Knowhow\\ContentHub\\'
-directory2 = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\'
+directory2 = '\\\\atlas\\Knowhow\\ContentHub\\'
+#directory2 = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\'
 #lookupdpsi = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\'
 ReportDir = "\\\\atlas\\knowhow\\AICER\\reports\\"
