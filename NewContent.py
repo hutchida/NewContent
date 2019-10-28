@@ -15,13 +15,17 @@ import matplotlib.dates as mdates
 import numpy as np
 from bs4 import BeautifulSoup, SoupStrainer
 
+import xml.etree.ElementTree as ET
+from lxml import etree
+
+import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
 def dataframefilter(df, search, weekago, type):
     df = df[df.DateFirstPublished.notnull()]
-    df['DateFirstPublished'] = pd.to_datetime(df['DateFirstPublished'], dayfirst=True)
+    df['DateFirstPublished'] = pd.to_datetime(df['DateFirstPublished'], dayfirst=False) #Date is in American format hence dayfirst false
     print("Week ago was: " + str(weekago))
     df = df[df.DateFirstPublished.dt.date >= weekago]
     print("\nBuilding new report...")
@@ -281,8 +285,8 @@ def Export(menu, directory, ReportDir, outputfile, OVFilename, daterange, total,
     dfHTML = df.to_html(na_rep = " ",index = False) #convert overview dataframe to html
     
     if type == 'web':
-        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/><style></style></head>'
-        html += '<title>New Content: ' + total + ' new docs created between ' + daterange + '</title>'
+        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/><style></style>'
+        html += '<title>New Content: ' + total + ' new docs created between ' + daterange + '</title></head>'
         html += '<h1 id="home">LexisPSL ContentHub: New Content</h1>' + menu + '<hr /><h2>' + total + ' new docs created between ' + daterange + '</h2>'
         html += '<p>This report includes the following content types only: PracticeNote, Overview, Checklist, and Precedents</p><hr />'
         html += '<div><img style="vertical-align: top" src="newcontentpie.png" /><img src="newcontentbar.png" /></div>'
@@ -313,13 +317,14 @@ def Export(menu, directory, ReportDir, outputfile, OVFilename, daterange, total,
         html = html.replace('&lt;', '<').replace('&gt;', '>').replace('\\', '/').replace('₂', '').replace('’',"'")
         
     if type == 'email':
-        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/><style>' + style + '</style></head>'
-        html += '<title>New Content: ' + total + ' new docs created between ' + daterange + '</title>'
+        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/><style>' + style + '</style>'
+        html += '<title>New Content: ' + total + ' new docs created between ' + daterange + '</title></head><body>'
         html += '<h1 id="home">LexisPSL ContentHub: New Content</h1><hr /><h2>' + total + ' new docs created between ' + daterange + '</h2>'
         html += '<p>This report includes the following content types only: PracticeNote, Overview, Checklist, and Precedents</p><hr />'
-        html += '<div><img src="cid:image1"><img src="cid:image2"></div>'
+        html += '<div><img src="cid:image1" /><img src="cid:image2" /></div>'
         html += '<div style="overflow-x:auto;">' + dfHTML + '</div>' + '<hr />'
         html += '<p>LexisPSL New Content Report<br />Developed by Daniel Hutchings</p>'
+        html += '</body></html>'
         html = html.replace('&lt;', '<').replace('&gt;', '>').replace('\\', '/').replace('₂', '').replace('’',"'")
         
     with open(directory + exportfilename,'w', encoding="utf-8") as f:
@@ -329,7 +334,52 @@ def Export(menu, directory, ReportDir, outputfile, OVFilename, daterange, total,
     
     print ("HTML generated at: " + directory + exportfilename)
 
-  
+
+
+def formatEmail(receiver_email, subject, filename):
+    msg = MIMEMultipart("related")
+    msg["Subject"] = subject
+    msg["From"] = sender_email
+    msg["To"] = receiver_email
+
+    # Encapsulate the plain and HTML versions of the message body in an
+    # 'alternative' part, so message agents can decide which they want to display.
+    msgAlternative = MIMEMultipart('alternative')
+    msg.attach(msgAlternative)
+
+    msgText = MIMEText('This is the alternative plain text message.')
+    msgAlternative.attach(msgText)
+
+    #send html from a file
+    f = open(filename)
+    msgText = MIMEText(f.read(),'html')
+    # We reference the image in the IMG SRC attribute by the ID we give it below
+    #msgText = MIMEText('<b>Some <i>HTML</i> text</b> and an image.<br><img src="cid:image1"><br><img src="cid:image2"><br>Nifty!', 'html')
+    msgAlternative.attach(msgText)
+
+    # This example assumes the image is in the current directory
+    fp = open('C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\newcontentpie.png', 'rb')
+    msgImage = MIMEImage(fp.read())
+    fp.close()
+
+    # Define the image's ID as referenced above
+    msgImage.add_header('Content-ID', '<image1>')
+    msg.attach(msgImage)
+
+    # This example assumes the image is in the current directory
+    fp = open('C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\newcontentbar.png', 'rb')
+    msgImage = MIMEImage(fp.read())
+    fp.close()
+
+    # Define the image's ID as referenced above
+    msgImage.add_header('Content-ID', '<image2>')
+    msg.attach(msgImage)
+
+    return msg
+
+def sendEmail(msg, receiver_email):
+    s = smtplib.SMTP("LNGWOKEXCP002.legal.regn.net")
+    s.sendmail(sender_email, receiver_email, msg.as_string())
 
 #main script
 print("\nBuilding a list of the relevent AICER reports...")
@@ -344,10 +394,11 @@ directory2 = '\\\\atlas\\Knowhow\\ContentHub\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\'
 ReportDir = "\\\\atlas\\knowhow\\AICER\\reports\\"
 #ReportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\'
-directory = "\\\\atlas\\knowhow\\PSL_Content_Management\\AICER_Reports\\AICER\\"
+directory = "\\\\atlas\\knowhow\\PSL_Content_Management\\AICER_Reports\\AICER_PM\\"
+#directory = "\\\\atlas\\knowhow\\PSL_Content_Management\\AICER_Reports\\AICER\\"
 #directory = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\'
 
-dirjoined = os.path.join(directory, '*AllContentItemsExport_[0-9][0-9][0-9][0-9].csv') # this joins the directory variable with the filenames within it, but limits it to filenames ending in 'AllContentItemsExport_xxxx.csv', note this is hardcoded as 4 digits only. This is not regex but unix shell wildcards, as far as I know there's no way to specifiy multiple unknown amounts of numbers, hence the hardcoding of 4 digits. When the aicer report goes into 5 digits this will need to be modified, should be a few years until then though
+dirjoined = os.path.join(directory, '*AllContentItemsExport_*.csv') # this joins the directory variable with the filenames within it, but limits it to filenames ending in 'AllContentItemsExport_xxxx.csv', note this is hardcoded as 4 digits only. This is not regex but unix shell wildcards, as far as I know there's no way to specifiy multiple unknown amounts of numbers, hence the hardcoding of 4 digits. When the aicer report goes into 5 digits this will need to be modified, should be a few years until then though
 files = sorted(glob.iglob(dirjoined), key=os.path.getctime, reverse=True) #search directory and add all files to dict
 date =  str(time.strftime("%d/%m/%Y"))
 weekago = (datetime.datetime.now().date() - datetime.timedelta(7)) #the 'date' part of this means it will only provide the date, not the hours, min, sec etc
@@ -360,12 +411,13 @@ total = '0'
 
 filename = files[0]
 
-outputfile = re.search('.*\\\\AICER\\\\([^\.]*)\.csv',filename).group(1) + "_UKPSL_newcontent.csv"
-outputfileqandas = re.search('.*\\\\AICER\\\\([^\.]*)\.csv',filename).group(1) + "_UKPSL_newcontent_QAs.csv"
-outputfilenews = re.search('.*\\\\AICER\\\\([^\.]*)\.csv',filename).group(1) + "_UKPSL_newcontent_News.csv"
+outputfile = re.search('.*\\\\AICER_PM\\\\([^\.]*)\.csv',filename).group(1) + "_UKPSL_newcontent.csv"
+outputfileqandas = re.search('.*\\\\AICER_PM\\\\([^\.]*)\.csv',filename).group(1) + "_UKPSL_newcontent_QAs.csv"
+outputfilenews = re.search('.*\\\\AICER_PM\\\\([^\.]*)\.csv',filename).group(1) + "_UKPSL_newcontent_News.csv"
 
-filename = re.search('.*\\\\AICER\\\\([^\.]*\.csv)',filename).group(1)   
+filename = re.search('.*\\\\AICER_PM\\\\([^\.]*\.csv)',filename).group(1)   
 print('\nLoaded: ' + files[0])
+
 
 print('This is the most recent AICER report: ' + filename)
 if os.path.isfile(ReportDir + outputfile) == False: #does the output file of this name already exist? If so skip
@@ -407,7 +459,28 @@ Export(menu, emaildirectory, ReportDir, outputfile, OVFilename, daterange, total
 Export(menu, directory2, ReportDir, outputfileqandas, OVFilenameQAs, daterange, total, 'qas', 'newcontentreportQandAs.html')  
 Export(menu, directory2, ReportDir, outputfilenews, OVFilenameNews, daterange, total, 'news', 'newcontentreportNews.html')    
 
-wait = input("Disconnect from network...run the SendEmail.py script in cmd...when ready press enter")
 
-#SendEmail(emaildirectory)
+
+#Email section
+sender_email = 'LNGUKPSLDigitalEditors@ReedElsevier.com'
+receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk']
+#receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk', 'stephen.leslie@lexisnexis.co.uk', 'danielmhutchings@gmail.com', 'emma.millington@lexisnexis.co.uk', 'lisa.moore@lexisnexis.co.uk', 'claire.hayes@lexisnexis.co.uk', 'Ruth.Newman@lexisnexis.co.uk']
+
+emaildirectory = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\'
+#directory = '\\\\atlas\\Knowhow\\ContentHub\\'
+filename = emaildirectory + 'newcontentreport_email.html'
+
+tree = etree.parse(filename)
+root = tree.getroot()
+title = root.find('.//title')
+subject = title.text
+
+
+#create and send email
+for receiver_email in receiver_email_list:
+    msg = formatEmail(receiver_email, subject, filename)
+    sendEmail(msg, receiver_email)
+print('Email sent...')
+
+
 print('Finished')
