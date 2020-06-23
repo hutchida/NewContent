@@ -23,6 +23,13 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
+
+def log(message):
+    l = open(JCSLogFile,'a')
+    l.write(message + '\n')
+    l.close()
+
+
 def dataframefilter(df, search, weekago, type):
     df = df[df.DateFirstPublished.notnull()]
     df['DateFirstPublished'] = pd.to_datetime(df['DateFirstPublished'], dayfirst=False) #Date is in American format hence dayfirst false
@@ -285,46 +292,47 @@ def Export(menu, directory, ReportDir, outputfile, OVFilename, daterange, total,
     dfHTML = df.to_html(na_rep = " ",index = False) #convert overview dataframe to html
     
     if type == 'web':
-        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/><style></style>'
+        total = str(len(df))
+        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/>    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">     <style></style>'
         html += '<title>New Content: ' + total + ' new docs created between ' + daterange + '</title></head>'
-        html += '<h1 id="home">LexisPSL ContentHub: New Content</h1>' + menu + '<hr /><h2>' + total + ' new docs created between ' + daterange + '</h2>'
+        html += '<body><div class="container"><h1 id="home">LexisPSL ContentHub: New Content</h1>' + menu + '<hr /><h2>' + total + ' new docs created between ' + daterange + '</h2>'
         html += '<p>This report includes the following content types only: PracticeNote, Overview, Checklist, and Precedents</p><hr />'
         html += '<div><img style="vertical-align: top" src="newcontentpie.png" /><img src="newcontentbar.png" /></div>'
         html += '<div style="overflow-x:auto;">' + dfHTML + '</div>' + '<hr />'
-        html += '<p>LexisPSL New Content Report<br />Developed by Daniel Hutchings</p>'
+        html += '<p>LexisPSL New Content Report<br />Developed by Daniel Hutchings</p></div></body></html>'
         html = html.replace('&lt;', '<').replace('&gt;', '>').replace('\\', '/').replace('₂', '').replace('’',"'")
         
     if type == 'qas':
         total = str(len(df))
-        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/><style></style></head>'
-        html += '<title>New Q and As: ' + total + ' new Q and As created between ' + daterange + '</title>'
-        html += '<h1 id="home">LexisPSL ContentHub: New Q and As</h1>' + menu + '<hr /><h2>' + total + ' new Q and As created between ' + daterange + '</h2>'
+        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/>    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">     <style></style>'
+        html += '<title>New Q and As: ' + total + ' new Q and As created between ' + daterange + '</title></head>'
+        html += '<body><div class="container"><h1 id="home">LexisPSL ContentHub: New Q and As</h1>' + menu + '<hr /><h2>' + total + ' new Q and As created between ' + daterange + '</h2>'
         html += '<p>This report includes only Q and As</p><hr />'
         html += '<div><img style="vertical-align: top" src="newcontentbar-qas.png" /></div>'
         html += '<div style="overflow-x:auto;">' + dfHTML + '</div>' + '<hr />'
-        html += '<p>LexisPSL New Content Report QAs<br />Developed by Daniel Hutchings</p>'
+        html += '<p>LexisPSL New Content Report QAs<br />Developed by Daniel Hutchings</p></div></body></html>'
         html = html.replace('&lt;', '<').replace('&gt;', '>').replace('\\', '/').replace('₂', '').replace('’',"'")
         
     if type == 'news':
         total = str(len(df))
-        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/><style></style></head>'
+        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/>    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">     <style></style>'
         html += '<title>New News items: ' + total + ' new News items created between ' + daterange + '</title>'
-        html += '<h1 id="home">LexisPSL ContentHub: New News items</h1>' + menu + '<hr /><h2>' + total + ' new News items created between ' + daterange + '</h2>'
+        html += '<body><div class="container"><h1 id="home">LexisPSL ContentHub: New News items</h1>' + menu + '<hr /><h2>' + total + ' new News items created between ' + daterange + '</h2>'
         html += '<p>This report includes only News items</p><hr />'
         html += '<div><img style="vertical-align: top" src="newcontentbar-news.png" /></div>'
         html += '<div style="overflow-x:auto;">' + dfHTML + '</div>' + '<hr />'
-        html += '<p>LexisPSL New Content Report News<br />Developed by Daniel Hutchings</p>'
+        html += '<p>LexisPSL New Content Report News<br />Developed by Daniel Hutchings</p></div></body></html>'
         html = html.replace('&lt;', '<').replace('&gt;', '>').replace('\\', '/').replace('₂', '').replace('’',"'")
         
     if type == 'email':
-        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/><style>' + style + '</style>'
+        html = r'<html><head><link rel="stylesheet" type="text/css" href="style.css"/>    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">     <style></style>'
         html += '<title>New Content: ' + total + ' new docs created between ' + daterange + '</title></head><body>'
         html += '<h1 id="home">LexisPSL ContentHub: New Content</h1><hr /><h2>' + total + ' new docs created between ' + daterange + '</h2>'
-        html += '<p>This report includes the following content types only: PracticeNote, Overview, Checklist, and Precedents</p><hr />'
+        html += '<body><div class="container"><p>This report includes the following content types only: PracticeNote, Overview, Checklist, and Precedents</p><hr />'
         html += '<div><img src="cid:image1" /><img src="cid:image2" /></div>'
         html += '<div style="overflow-x:auto;">' + dfHTML + '</div>' + '<hr />'
         html += '<p>LexisPSL New Content Report<br />Developed by Daniel Hutchings</p>'
-        html += '</body></html>'
+        html += '</div></body></html>'
         html = html.replace('&lt;', '<').replace('&gt;', '>').replace('\\', '/').replace('₂', '').replace('’',"'")
         
     with open(directory + exportfilename,'w', encoding="utf-8") as f:
@@ -383,10 +391,7 @@ def sendEmail(msg, receiver_email):
 
 #main script
 print("\nBuilding a list of the relevent AICER reports...")
-menu = '<p><b>Currency</b>: <a href="Currency.html">General</a> | <a href="Top200Currency.html">Top 200</a> | <a href="ZeroCurrency.html">Zero Views</a> | <a href="ECC_Currency.html">Externally Commissioned</a> | <a href="BrexitCurrency.html">Brexit Related</a> | <a href="AGCurrency.html">AG</a> | <a href="CMSCurrency.html">CMS</a> | <a href="EVCurrency.html">EV</a> | <a href="IMCurrency.html">IM</a> | <a href="PMCurrency.html">PM</a>'
-menu += '<br\><b>New Content</b>: <a href="Newcontentreport.html">General</a> | <a href="newcontentreportQandAs.html">QAs</a> | <a href="newcontentreportNews.html">News</a>'
-menu += '<br\><b>Under Review</b>: <a href="underreviewsummary.html">General</a>'
-menu += '<br\><b>Links</b>: <a href="file://///atlas/Knowhow/LinkHub/linkhub.html">LinkHub</a></p>'
+menu = '<p><a href="file://///atlas/Knowhow/ContentHub/PAs/ALLPSL/currency.html">Currency</a> | <a href="file://///atlas/Knowhow/ContentHub/underreviewsummary.html">Under Review</a> | <a href="file://///atlas/Knowhow/LinkHub/linkhub.html">LinkHub</a> | <a href="file://///atlas/Knowhow/ContentHub/Newcontentreport.html">New Content Report</a> | <a href="file://///atlas/Knowhow/ContentHub/newcontentreportQandAs.html">New QAs</a> | <a href="file://///atlas/Knowhow/ContentHub/newcontentreportNews.html">New News</a></p>'
 
 directory2 = '\\\\atlas\\Knowhow\\ContentHub\\'
 #directory2 = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\'
@@ -422,49 +427,52 @@ print('\nLoaded: ' + files[0])
 print('This is the most recent AICER report: ' + filename)
 if os.path.isfile(ReportDir + outputfile) == False: #does the output file of this name already exist? If so skip
     Filter(filename, files, directory, ReportDir, outputfile, outputfileqandas, outputfilenews, weekago) #filter and categorise an aicer report
-else: print('Filtered report already exists...skipping...')
-    
-MiniSummary(ReportDir, outputfile, lookupdpsi)
-MiniSummary(ReportDir, outputfileqandas, lookupdpsi)
-MiniSummary(ReportDir, outputfilenews, lookupdpsi)
-
-OverviewLog(ReportDir, outputfile, OVFilename)
-QandAsOverviewLog(ReportDir, outputfileqandas, OVFilenameQAs)
-NewsOverviewLog(ReportDir, outputfilenews, OVFilenameNews)
-
-StackedBar(ReportDir, OVFilename, emaildirectory, daterange)
-StackedBar(ReportDir, OVFilename, directory2, daterange)
-
-StandardBar(ReportDir, OVFilenameQAs, directory2, daterange, 'QandAs')
-StandardBar(ReportDir, OVFilenameNews, directory2, daterange, 'News items')
-
-df = pd.read_csv(ReportDir + outputfile, encoding='UTF-8') #Load csv file into dataframe
-try: total = str(df.shape[0])
-except: total = 0
-try: pntotal = len(df[df['Content Type'] == 'PracticeNote'])
-except: pntotal = 0
-try: prtotal = len(df[df['Content Type'] == 'Precedent'])
-except: prtotal = 0
-try: cltotal = len(df[df['Content Type'] == 'Checklist'])
-except: cltotal = 0
-try: ovtotal = len(df[df['Content Type'] == 'AtAGlance'])
-except: ovtotal = 0
-listCT = [pntotal, ovtotal, cltotal, prtotal]
 
         
-Pie(listCT, emaildirectory, daterange)
-Pie(listCT, directory2, daterange)
+    MiniSummary(ReportDir, outputfile, lookupdpsi)
+    MiniSummary(ReportDir, outputfileqandas, lookupdpsi)
+    MiniSummary(ReportDir, outputfilenews, lookupdpsi)
+
+    OverviewLog(ReportDir, outputfile, OVFilename)
+    QandAsOverviewLog(ReportDir, outputfileqandas, OVFilenameQAs)
+    NewsOverviewLog(ReportDir, outputfilenews, OVFilenameNews)
+
+    StackedBar(ReportDir, OVFilename, emaildirectory, daterange)
+    StackedBar(ReportDir, OVFilename, directory2, daterange)
+
+    StandardBar(ReportDir, OVFilenameQAs, directory2, daterange, 'QandAs')
+    StandardBar(ReportDir, OVFilenameNews, directory2, daterange, 'News items')
+
+    df = pd.read_csv(ReportDir + outputfile, encoding='UTF-8') #Load csv file into dataframe
+    try: total = str(df.shape[0])
+    except: total = 0
+    try: pntotal = len(df[df['Content Type'] == 'PracticeNote'])
+    except: pntotal = 0
+    try: prtotal = len(df[df['Content Type'] == 'Precedent'])
+    except: prtotal = 0
+    try: cltotal = len(df[df['Content Type'] == 'Checklist'])
+    except: cltotal = 0
+    try: ovtotal = len(df[df['Content Type'] == 'AtAGlance'])
+    except: ovtotal = 0
+    listCT = [pntotal, ovtotal, cltotal, prtotal]
+
+            
+    Pie(listCT, emaildirectory, daterange)
+    Pie(listCT, directory2, daterange)
+    
+else: print('Filtered report already exists...skipping...')
+
 Export(menu, directory2, ReportDir, outputfile, OVFilename, daterange, total, 'web', 'newcontentreport.html')  
 Export(menu, emaildirectory, ReportDir, outputfile, OVFilename, daterange, total, 'email', 'newcontentreport_email.html') 
 Export(menu, directory2, ReportDir, outputfileqandas, OVFilenameQAs, daterange, total, 'qas', 'newcontentreportQandAs.html')  
 Export(menu, directory2, ReportDir, outputfilenews, OVFilenameNews, daterange, total, 'news', 'newcontentreportNews.html')    
 
-
+wait = input("PAUSED...when ready press enter")
 
 #Email section
 sender_email = 'LNGUKPSLDigitalEditors@ReedElsevier.com'
-receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk']
-#receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk', 'stephen.leslie@lexisnexis.co.uk', 'danielmhutchings@gmail.com', 'emma.millington@lexisnexis.co.uk', 'lisa.moore@lexisnexis.co.uk', 'claire.hayes@lexisnexis.co.uk', 'Ruth.Newman@lexisnexis.co.uk']
+#receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk']
+receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk', 'stephen.leslie@lexisnexis.co.uk', 'danielmhutchings@gmail.com', 'emma.millington@lexisnexis.co.uk', 'lisa.moore@lexisnexis.co.uk', 'claire.hayes@lexisnexis.co.uk', 'Ruth.Newman@lexisnexis.co.uk']
 
 emaildirectory = 'C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\'
 #directory = '\\\\atlas\\Knowhow\\ContentHub\\'
